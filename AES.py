@@ -145,7 +145,7 @@ def xtime(b):
     b.append(0)
     if(b[0]==1):
         b ^= bitarray('100011011')
-    del[b[0]]
+    del(b[0])
     return b
 #Sin descripcion
 def mult(v):
@@ -306,7 +306,7 @@ def invMixColumns(E):
     E = transpose(E)
     R = []
     for v in E:
-        w = mult(v)
+        w = invMult(v)
         R.append(w)
     R = transpose(R)
     R = mat2Array(R)
@@ -315,7 +315,7 @@ def invMixColumns(E):
 def invMult(v):
     
     S = []
-    
+    #Calculo de los 4 bytes de la columna 
     S0 = mult0E(v[0]) ^ mult0B(v[1]) ^ mult0D(v[2]) ^ mult09(v[3])
     S1 = mult09(v[0]) ^ mult0E(v[1]) ^ mult0B(v[2]) ^ mult0D(v[3])
     S2 = mult0D(v[0]) ^ mult09(v[1]) ^ mult0E(v[2]) ^ mult0B(v[3])
@@ -336,7 +336,7 @@ def mult0E(b):
     a = xtime(b)
     c = xtime(a)
     d = xtime(c)
-    return(a ^ b ^ c)
+    return(a ^ d ^ c)
 
 def mult0B(b):
     a = xtime(b)
@@ -347,3 +347,9 @@ def mult0D(b):
     a = xtime(xtime(b))
     c = xtime(a)
     return(a ^ b ^ c)
+
+prueba = '627bceb9999d5aaac945ecf423f56da5' #e51c9502a5c1950506a61024596b2b07
+prueba = h2b(prueba)
+prueba = bitarray(prueba)
+
+print(b2h(invMixColumns(prueba)))   
