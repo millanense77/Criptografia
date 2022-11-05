@@ -75,8 +75,8 @@ def sBox(b, opcion):
 def subByte(E, tam, opcion):
     """
     Esta funcion divide el bitarray en partes de 8 bits, que las pasa
-    a la funcion subByte, y concatena en un bitarray el bitarray
-    devuelto por la funcion subByte(la caja).
+    a la funcion sBox, y concatena en un bitarray el bitarray
+    devuelto por la funcion sBox(la caja).
     Recibe como parametros un bitarray, la longitud del bitarray 
     y la opcion si es cifrado (0) o descifrado (1).
     Devuelve el bitarray resultante.
@@ -275,12 +275,24 @@ def stringToHexadecimal(msj):
     return res
 
 def CBC_cifrado(msj, key):
+    """
+    Esta es la funcion desde la que se lanza 
+    todo el proceso de cifrado CBC.
+    Recibe un mensaje y una clave en hexadecimal.
+    Devuelve una cadena hexadecimal.
+    """
     IV = stringToHexadecimal('ALONSOCARLOSFERNAND')
     input = b2h(h2b(msj) ^ h2b(IV))
     cifrado = AES_cif(input, key)
     return cifrado
 
 def ECB_cifrado(cadena,k):
+    """
+    Esta es la funcion desde la que se lanza 
+    todo el proceso de cifrado ECB.
+    Recibe un mensaje y una clave en hexadecimal.
+    Devuelve una cadena hexadecimal.
+    """
     bloques = []
     for i in range(0,len(cadena),128):
         bloques.append(cadena[i:i+128])
@@ -366,43 +378,91 @@ def AES_des(msj, k):
     E = invShiftRows(E)
     E = subByte(E, 128, 1)
     E = addRoundKey(b2h(E), K[0])
-    return E
+    return b2h(E)
 
 def CBC_descifrado(msj, key):
+    """
+    Esta es la funcion principal que lleva a cabo
+    todo el proceso de descifrado CBC.
+    Recibe un mensaje y una clave en hexadecimal.
+    Devuelve una cadena hexadecimal.
+    """
     IV = stringToHexadecimal('ALONSOCARLOSFERNAND')
     input = AES_des(msj, key)
-    descifrado = b2h(input ^ h2b(IV))
+    descifrado = b2h(h2b(input) ^ h2b(IV))
     return descifrado
 
 def invECB(cadena,k):
+    """
+    Esta es la funcion principal que lleva a cabo
+    todo el proceso de descifrado ECB.
+    Recibe un mensaje y una clave en hexadecimal.
+    Devuelve una cadena hexadecimal.
+    """
     bloques = []
     for i in range(0,len(cadena),128):
         bloques.append((cadena[i:i+128]))   
     bloquesDes = []
     for i in bloques:
-        bloquesDes.append(b2h(AES_des(i,k)))
+        bloquesDes.append(AES_des(i,k))
     descifrado = "" 
     for i in bloquesDes:
         descifrado += i
         
     return(descifrado)
 
-def main(msj, key):
+def formatoMsj(txt):
+    """
+    Esta es la funcion comprueba que el formato de la cadena
+    que recibe es el correto (longitud 32 y en hexadecimal).
+    Recibe una cadena de texto.
+    Devuelve True si es correcta o False si no esta bien.
+    """
+    if(len(txt)<32 or len(txt)>32):
+        print('La cadena debe tener 32 bytes de longitud.')
+        return False
+    try:
+        int(txt, 16)
+    except: 
+        print('La cadena debe ser en hexadecimal')
+        return False
+    
+    return True
+
+def main():
+    #Introduccion y comprobacion del mensaje
+    flag = False
+    while(flag == False):
+        msj = input('Introduzca un mensaje en hexadecimal de 32 bytes: ')
+        flag = formatoMsj(msj)
+    #Introduccion y comprobacion de la clave
+    flag = False
+    while(flag == False): 
+        key = input('Introduzca una clave en hexadeciaml de longitud maxima 32 bytes: ')
+        aux = key
+        if(len(aux)<32):
+            i = 0
+            while(len(aux)<32):
+                aux += aux[i]
+                i = i + 1
+        flag = formatoMsj(aux)
+        
     print('\nMensaje sin cifrar: '+str(msj))
     print("Clave: "+str(key))
-
-    CBC = CBC_cifrado(msj, key)
+    
+    CBC = CBC_cifrado(msj, aux)
     print('\nCifrado con CBC: '+str(CBC))
-    CBC = CBC_descifrado(CBC,key)
+    CBC = CBC_descifrado(CBC,aux)
     print('\nDescifrado con CBC: '+str(CBC))
 
-    ECB = ECB_cifrado(msj, key)
+    ECB = ECB_cifrado(msj, aux)
     print('\nCifrado con ECB: '+str(ECB))
-    ECB = invECB(ECB,key)
+    ECB = invECB(ECB,aux)
     print('\nDescifrado con ECB: '+str(ECB))
 
+main()
 
-main('00112233445566778899aabbccddeeff','000102030405060708090a0b0c0d0e0f')
+#main('00112233445566778899aabbccddeeff','000102030405060708090a0b0c0d0e0f')
 
 #msj = '00112233445566778899aabbccddeeff'
 #key = '000102030405060708090a0b0c0d0e0f'
