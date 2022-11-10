@@ -1,6 +1,11 @@
-from bitarray import bitarray
-from bitarray.util import hex2ba as h2b, ba2hex as b2h, ba2int as b2i, int2ba as i2b
 from functools import reduce as reduce
+
+from bitarray import bitarray
+from bitarray.util import ba2hex as b2h
+from bitarray.util import ba2int as b2i
+from bitarray.util import hex2ba as h2b
+from bitarray.util import int2ba as i2b
+
 
 def addRoundKey(E, k):
     """
@@ -171,7 +176,7 @@ def xtime(b):
     b.append(0)
     if(b[0]==1):
         b ^= bitarray('100011011')
-    del[b[0]]
+    del[b[0]]  # type: ignore
     return b
 
 def mult(v):
@@ -387,7 +392,8 @@ def CBC_descifrado(msj, key):
     Recibe un mensaje y una clave en hexadecimal.
     Devuelve una cadena hexadecimal.
     """
-    IV = stringToHexadecimal('ALONSOCARLOSFERNAND')
+    #IV = stringToHexadecimal('ALONSOCARLOSFERNAND')
+    IV = input('Introduzca un vector de inicializacion de 128 bits: ')
     input = AES_des(msj, key)
     descifrado = b2h(h2b(input) ^ h2b(IV))
     return descifrado
