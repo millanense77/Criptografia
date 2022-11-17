@@ -286,9 +286,14 @@ def CBC_cifrado(msj, key):
     Recibe un mensaje y una clave en hexadecimal.
     Devuelve una cadena hexadecimal.
     """
-    IV = stringToHexadecimal('ALONSOCARLOSFERNAND')
-    input = b2h(h2b(msj) ^ h2b(IV))
-    cifrado = AES_cif(input, key)
+    
+    flag = False
+    while(flag == False):
+        IV = input('Introduzca un vector de inicialización de 32 bytes: ')
+        IV = stringToHexadecimal(IV)
+        flag = formatoMsj(IV)
+    mensaje = b2h(h2b(msj) ^ h2b(IV))
+    cifrado = AES_cif(mensaje, key)
     return cifrado
 
 def ECB_cifrado(cadena,k):
@@ -392,10 +397,16 @@ def CBC_descifrado(msj, key):
     Recibe un mensaje y una clave en hexadecimal.
     Devuelve una cadena hexadecimal.
     """
+<<<<<<< Updated upstream
     #IV = stringToHexadecimal('ALONSOCARLOSFERNAND')
     IV = input('Introduzca un vector de inicializacion de 128 bits: ')
     input = AES_des(msj, key)
     descifrado = b2h(h2b(input) ^ h2b(IV))
+=======
+    IV = stringToHexadecimal(input('Introduzca un vector de inicialización de 128 bits: '))
+    mensaje = AES_des(msj, key)
+    descifrado = b2h(h2b(mensaje) ^ h2b(IV))
+>>>>>>> Stashed changes
     return descifrado
 
 def invECB(cadena,k):
@@ -464,7 +475,7 @@ def main():
     ECB = ECB_cifrado(msj, aux)
     print('\nCifrado con ECB: '+str(ECB))
     ECB = invECB(ECB,aux)
-    print('\nDescifrado con ECB: '+str(ECB))
+    print('Descifrado con ECB: '+str(ECB))
 
 main()
 
