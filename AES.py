@@ -397,16 +397,10 @@ def CBC_descifrado(msj, key):
     Recibe un mensaje y una clave en hexadecimal.
     Devuelve una cadena hexadecimal.
     """
-<<<<<<< Updated upstream
     #IV = stringToHexadecimal('ALONSOCARLOSFERNAND')
     IV = input('Introduzca un vector de inicializacion de 128 bits: ')
     input = AES_des(msj, key)
     descifrado = b2h(h2b(input) ^ h2b(IV))
-=======
-    IV = stringToHexadecimal(input('Introduzca un vector de inicialización de 128 bits: '))
-    mensaje = AES_des(msj, key)
-    descifrado = b2h(h2b(mensaje) ^ h2b(IV))
->>>>>>> Stashed changes
     return descifrado
 
 def invECB(cadena,k):

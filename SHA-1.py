@@ -29,26 +29,30 @@ def str2hex(m):
 def padding(M):
     L = len(M) + 1 
     K = (448 - L)
+    m = M
     if (L < 448):
         E  = 448 - L 
     k0 = bitarray('0') * E
-    M += bitarray('1') + k0 + int2ba(L-1, 64)
-    return(len(M))
+    m = str2ba(m)
+    m += bitarray('1') + k0 + int2ba(L-1, 64)
+    return(m)
     
 def parsing(mensaje, bits):
     bloques = []
     for i in range(0,len(mensaje),bits):
-        bloques.append((mensaje[i:i+128]))
+        bloques.append((mensaje[i:i+bits]))
     return bloques
    
 def SHA1(mensaje):
     mensaje = padding(mensaje)
-    lista = parsing(mensaje)
-    hash = HASH
-    for bloque in Lista:
+    lista = parsing(mensaje,512)
+    return(lista)
+    """hash = HASH
+    for bloque in lista:
         hash = sha1(hash,bloque)
-    return(hash)
+    return(hash)"""
 
 def sha1(ini,bloque):
     pass
+    
     
