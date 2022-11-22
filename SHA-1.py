@@ -42,6 +42,8 @@ def parsing(mensaje, bits):
     for i in range(0,len(mensaje),bits):
         bloques.append((mensaje[i:i+bits]))
     return bloques
+
+# despues del parsing se debe partir el bloque de 512 bits en bloques de 16 bits
    
 def SHA1(mensaje):
     mensaje = padding(mensaje)
