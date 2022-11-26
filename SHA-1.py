@@ -4,6 +4,11 @@ from bitarray.util import hex2ba, ba2hex, ba2int, int2ba
 HASH = hex2ba("67452301EFCDAB8998BADCFE10325476C3D2E1F0")
 
 def str2ba(m): 
+    """
+    Esta funcion convierte eun string a bitarray.
+    Recibe un cadena de texto.
+    Devuelve un bitarray de tamaño 8.
+    """
     M = list(map(ord, m))
     b = bitarray()
     for x in M:
@@ -11,12 +16,21 @@ def str2ba(m):
     return(b)
 
 def str2int(m):
+    """
+    Esta funcion convierte un string en un numero entero.
+    Recibe una cadena de texto.
+    Devuelve un numero entero.
+    """
     return(ba2int(str2ba(m)))
 
 def str2hex(m):
+    """
+    Esta funcion convierte un string a hexadecimal.
+    Recibe una cadena de texto.
+    Devuelve un numero hexadecimal.
+    """
     return(ba2hex(str2ba(m)))
 
-#Padding
 def padding(b):
     """
     Este metodo crea un bitarray de tamaño 
@@ -24,8 +38,10 @@ def padding(b):
     Recibe un bitarray.
     Devuelve un bitarray de tamaño multiplo 512.
     """
-    tam = len(b)
-    L = tam - (tam//512*512) 
+    tam = len(b) #Tamaño del bitarray original
+    L = tam - (tam//512*512) #Tamaño del ultimo bloque si se divide en bloques de 512 bits
+    #Si el ultimo bloque es mayor o igual a 448 calcula k0 creando un bloque mas
+    #Si no calcula k0 rellenando el que hay.
     if(L % 512 < 448): k = 448-L-1
     else: k = 960-L-1
     B = b.copy()
@@ -33,10 +49,7 @@ def padding(b):
     k0 = bitarray('0') * k
     B += k0
 
-    long = int2ba(tam)#Tamaño del bitarray original en binario
-    k0 = bitarray('0') * (64-len(long))
-    long = k0 + long
-    B = B + long
+    B = B + int2ba(tam,64)
     return B
 
 def parsing(mensaje, bits):
@@ -64,6 +77,11 @@ def ROTL(e, k):
     return E
 
 def expand(bloque):
+    """
+    Este metodo genera 80 bitarrays a partir de 16.
+    Recibe un bitarray de tamaño 512 bits.
+    Devuelve una lista de 80 bitarrays.
+    """
     w = []
     for i in range(0,512,32):
         w.append(bloque[i:i+32])
@@ -78,7 +96,7 @@ def funcNoLineal(i, B, C, D):
     Devuelve el resultado de la operacion correspondiente.
     """
     if 0 <= i <= 19:
-        f = (B & C) | ((~B) & D)
+        f = (B & C) | ((~B) & D) 
     else:
         if 20 <= i <= 39:
             f = B ^ C ^ D
@@ -108,33 +126,51 @@ def constante(i):
                 if 60 <= i <= 79:
                     return hex2ba('CA62C1D6')
 
-def sha1(bloque):
-    w = expand(bloque)
-    AA = HASH[0:32]
-    BB = HASH[32:32*2]
-    CC = HASH[32*2:32*3]
-    DD = HASH[32*3:32*4]
-    EE = HASH[32*4:32*5]    
 
+def sha1(hash, bloque):
+    """
+    Este metodo realiza el hash de un bloque recibido.
+    Recibe un bitarray de tamaño 160 bits y un bloque de 512 bits.
+    Devuelve un bitarray de tamaño 160 bits.
+    """
+    w = expand(bloque)
+    AA = hash[0:32]
+    BB = hash[32:32*2]
+    CC = hash[32*2:32*3]
+    DD = hash[32*3:32*4]
+    EE = hash[32*4:32*5]
+    
     for i in range(80):
-        T = ba2int(ROTL(AA,5) + funcNoLineal(i, BB, CC, DD) + EE + w[i] + constante(i)) % 2 ** 32
+        T = (ba2int(ROTL(AA,5)) + ba2int(funcNoLineal(i, BB, CC, DD)) + ba2int(EE) + ba2int(w[i]) + ba2int(constante(i))) % 2**32
         EE = DD
         DD = CC
         CC = ROTL(BB, 30)
         BB = AA
         AA = int2ba(T,32)
-        
-    res = (AA + HASH[0:32]) + (BB + HASH[32:32*2]) + (CC + HASH[32*2:32*3]) + (DD + HASH[32*3:32*4]) + (EE + HASH[32*4:32*5])# tiene que ser modulo 32
+
+    AA = (ba2int(AA) + ba2int(hash[0:32])) % 2**32
+    BB = (ba2int(BB) + ba2int(hash[32:32*2])) % 2**32
+    CC = (ba2int(CC) + ba2int(hash[32*2:32*3])) % 2**32
+    DD = (ba2int(DD) + ba2int(hash[32*3:32*4])) % 2**32
+    EE = (ba2int(EE) + ba2int(hash[32*4:32*5])) % 2**32
+    res = int2ba(AA,32)+int2ba(BB,32)+int2ba(CC,32)+int2ba(DD,32)+int2ba(EE,32)
+
     return res
 
 def SHA1(mensaje):
+    """
+    Metodo principal de generación de SHA-1, realiza el preproceso, la inicializacion
+    de variables y lanza el bucle principal que procesa cada bloque generado.
+    Recibe un bitarray.
+    Devuelve un numero en hexadecimal.
+    """
     mensaje = padding(mensaje)
     lista = parsing(mensaje,512)
-    
+    hash = HASH
     for bloque in lista:
-        hash = sha1(bloque)
+        hash = sha1(hash, bloque)
     return ba2hex(hash)
 
-msj = hex2ba(str2hex('abc'))
 
+msj = hex2ba(str2hex('abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq'))
 print(SHA1(msj))
