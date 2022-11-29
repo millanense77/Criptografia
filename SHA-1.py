@@ -174,3 +174,7 @@ def SHA1(mensaje):
 
 msj = hex2ba(str2hex('abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq'))
 print(SHA1(msj))
+
+#print(eval('0x' + SHA1(msj))) forma de pasar de hexdecimal a entero
+
+
