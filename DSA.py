@@ -4,11 +4,11 @@ from math import floor, ceil
 
 q = randprime(2**159, 2**160)
 
-n = randint(ceil((2**1023 -1)/(2*q)), floor((2**1024-1)/(2**q)))
+n = randint(ceil((2**1023 -1)/(2*q)), floor((2**1024-1)/(2*q)))
 p = 2 * n * q +1
 
 while not isprime(p):
-    n = randint(ceil((2**1023 -1)/(2*q)), floor((2**1024-1)/(2**q)))
+    n = randint(ceil((2**1023 -1)/(2*q)), floor((2**1024-1)/(2*q)))
     p = 2 * n * q + 1
     
 h = randint(2,p-2) 
