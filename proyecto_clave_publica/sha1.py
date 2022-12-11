@@ -4,11 +4,6 @@ from bitarray.util import hex2ba, ba2hex, ba2int, int2ba
 HASH = hex2ba("67452301EFCDAB8998BADCFE10325476C3D2E1F0")
 
 def str2ba(m): 
-    """
-    Esta funcion convierte eun string a bitarray.
-    Recibe un cadena de texto.
-    Devuelve un bitarray de tamaño 8.
-    """
     M = list(map(ord, m))
     b = bitarray()
     for x in M:
@@ -16,21 +11,12 @@ def str2ba(m):
     return(b)
 
 def str2int(m):
-    """
-    Esta funcion convierte un string en un numero entero.
-    Recibe una cadena de texto.
-    Devuelve un numero entero.
-    """
     return(ba2int(str2ba(m)))
 
 def str2hex(m):
-    """
-    Esta funcion convierte un string a hexadecimal.
-    Recibe una cadena de texto.
-    Devuelve un numero hexadecimal.
-    """
     return(ba2hex(str2ba(m)))
 
+#Padding
 def padding(b):
     """
     Este metodo crea un bitarray de tamaño 
@@ -77,11 +63,6 @@ def ROTL(e, k):
     return E
 
 def expand(bloque):
-    """
-    Este metodo genera 80 bitarrays a partir de 16.
-    Recibe un bitarray de tamaño 512 bits.
-    Devuelve una lista de 80 bitarrays.
-    """
     w = []
     for i in range(0,512,32):
         w.append(bloque[i:i+32])
@@ -128,11 +109,6 @@ def constante(i):
 
 
 def sha1(hash, bloque):
-    """
-    Este metodo realiza el hash de un bloque recibido.
-    Recibe un bitarray de tamaño 160 bits y un bloque de 512 bits.
-    Devuelve un bitarray de tamaño 160 bits.
-    """
     w = expand(bloque)
     AA = hash[0:32]
     BB = hash[32:32*2]
@@ -153,28 +129,25 @@ def sha1(hash, bloque):
     CC = (ba2int(CC) + ba2int(hash[32*2:32*3])) % 2**32
     DD = (ba2int(DD) + ba2int(hash[32*3:32*4])) % 2**32
     EE = (ba2int(EE) + ba2int(hash[32*4:32*5])) % 2**32
+
     res = int2ba(AA,32)+int2ba(BB,32)+int2ba(CC,32)+int2ba(DD,32)+int2ba(EE,32)
 
     return res
 
 def SHA1(mensaje):
-    """
-    Metodo principal de generación de SHA-1, realiza el preproceso, la inicializacion
-    de variables y lanza el bucle principal que procesa cada bloque generado.
-    Recibe un bitarray.
-    Devuelve un numero en hexadecimal.
-    """
-    mensaje = padding(mensaje)
+    
+    mensaje = padding(hex2ba(str2hex(mensaje)))
     lista = parsing(mensaje,512)
     hash = HASH
     for bloque in lista:
         hash = sha1(hash, bloque)
+    
     return ba2hex(hash)
 
 
-msj = hex2ba(str2hex('abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq'))
-print(SHA1(msj))
-
-#print(eval('0x' + SHA1(msj))) forma de pasar de hexdecimal a entero
-
-
+#msj = hex2ba(str2hex('abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq'))
+#print(SHA1(msj))
+#h = str2hex(msj)
+#b = hex2ba(h)
+#x = padding(b)
+#y = parsing(x, 512)
