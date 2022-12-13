@@ -79,14 +79,11 @@ def funcNoLineal(i, B, C, D):
     if 0 <= i <= 19:
         f = (B & C) | ((~B) & D) 
     else:
-        if 20 <= i <= 39:
+        if 20 <= i <= 39 or 60 <= i <= 79:
             f = B ^ C ^ D
         else :
             if 40 <= i <= 59:
                 f = (B & C) | (B & D) | (C & D) 
-            else:
-                if 60 <= i <= 79:
-                    f = B ^ C ^ D
     return f
 
 def constante(i):
@@ -144,10 +141,3 @@ def SHA1(mensaje):
     
     return ba2hex(hash)
 
-
-#msj = hex2ba(str2hex('abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq'))
-#print(SHA1(msj))
-#h = str2hex(msj)
-#b = hex2ba(h)
-#x = padding(b)
-#y = parsing(x, 512)

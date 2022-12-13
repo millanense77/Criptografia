@@ -3,13 +3,7 @@ from bitarray.util import hex2ba, ba2hex, ba2int, int2ba
 from sympy import randprime, isprime
 from random import randint
 import pickle
-
-p = 0
-alpha = 0
-a = 0
-A = 0
-b = 0
-B = 0
+import DSA
 
 def str2ba(m): 
     M = list(map(ord, m))
@@ -37,42 +31,49 @@ def int2txt(n):
     res = ''
     return (res.join(bloques))
 
-def diccionario(p, alpha, E, R, e, r):
-    lista = {}
-    lista['Grupo'] = p
-    lista['Generador'] = alpha
-    lista['Emisor_Publica'] = E
-    lista['Receptor_Publica'] = R
-    lista['Emisor_Privada'] = e
-    lista['Receptor_Privada'] = r
+def lista2Diccionario(lista):
+    dicc = {}
+    dicc['Grupo'] = lista[0]
+    dicc['Generador'] = lista[1]
+    dicc['Q'] = lista[2]
+    for i in range(3,len(lista)):
+        x = "Usuario_"+ str(i-1)
+        dicc[x+"_privada"] = lista[i][0]
+        dicc[x+"_publica"] = lista[i][1]
+    return dicc
+
+def dicc2Lista(dicc):
+    lista = []
+    aux = []
+    for key,value in dicc.items(): 
+        aux.append(value)
+    lista = [aux[0], aux[1], aux[2]]
+    for i in range(3,len(aux)-1,2):
+        L = []
+        L.append(aux[i])
+        L.append(aux[i+1])
+        lista.append(L)
     return lista
 
-def escribirFichero(x):  
-    #with open('claves.pkl', 'wb') as pickle_out:
-     #   pickle.dump(x, pickle_out) # guardamos la lista en un fichero binario
-    
+def escribirFichero(x):
     output = open('claves.pkl', 'wb')
     pickle.dump(x,output)
     output.close()
-    print('\nFichero generado')
 
-def leerFichero():    
-    #with open('claves.pkl', 'rb') as pickle_in:
-     #   lectura = pickle.load(pickle_in) # importamos la lista del fichero 
+def leerFichero():
     f=open('claves.pkl','rb')
     lectura=pickle.load(f)
     f.close()
-
     return lectura
 
 def generarGrupo(q):
     p = 2 * q + 1
     while not isprime(p):
-        q = randprime(1, 2**64)
+        q = randprime(2**159, 2**160)  
         p = 2 * q + 1
     return p
 
-def generarGenerador(p,q):
+def generarGenerador(p,q): 
     g = 1
     a = b = 1 
     while(a == 1 and b == 1):
@@ -82,34 +83,33 @@ def generarGenerador(p,q):
             g = g + 1
     return g
 
-def generarNuevasClaves():
-    q = randprime(1, 2**64)
-    p = generarGrupo(q)
-    alpha = generarGenerador(p,q)
-
-    a = randint(2,p-1) #clave privada de A
-    A = pow(alpha, a, p) #clave publica de A
-    b = randint(2,p-1) #clave privada de A
-    B = pow(alpha, b, p) #clave publica de A
+def generarNuevasClaves(nUsuarios):
+    q = randprime(2**159, 2**160)  
+    p,n = DSA.eleccionP(q)
+    #alpha = generarGenerador(p,q) #alfa realmente es g
+    alpha = DSA.eleccionG(p,n)
+    lista = [p,alpha,q]
+    for i in range(nUsuarios):
+        L = []
+        x = randint(2,p-1)
+        X = pow(alpha, x, p) 
+        L.append(x)
+        L.append(X)
+        lista.append(L)
+    
     dicc = {}
-    dicc = diccionario(p,alpha,A,B,a,b)
-    print(dicc)
+    dicc = lista2Diccionario(lista)
     escribirFichero(dicc)
 
 def establecerClaves():
-    global p 
-    global alpha 
-    global A 
-    global B 
-    global a
-    global b 
     flag = False
 
     while(flag == False):
-        x = input('¿Desea generar nuevas claves?(Y/n)')
+        x = input('¿Desea generar nuevas claves?(Y/n): ')
         if(x == 'Y' or x == 'y'):
             flag = True
-            generarNuevasClaves()
+            i = input('\nIntroduzca cantidad de usuarios: ')
+            generarNuevasClaves(int(i))
         if(x == 'n' or x == 'N'):
             flag = True
         if(flag == False):
@@ -117,21 +117,5 @@ def establecerClaves():
 
     dicc = {}
     dicc = leerFichero()
-    p = dicc['Grupo']
-    alpha = dicc['Generador']
-    A = dicc['Emisor_Publica']
-    B = ['Receptor_Publica']
-    a = dicc['Emisor_Privada']
-    b = dicc['Receptor_Privada']
-"""
-def main():
-    establecerClaves()
-    print('p: '+str(p))
-
-main()
-#x = txt2int('hola')
-#y = int2txt(x)
-#print('X = '+str(x))
-#print('Y = '+str(y))
-
-"""
+    L = dicc2Lista(dicc)
+    return (L[0], L[1], L[2], L[3:])

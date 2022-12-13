@@ -6,8 +6,8 @@ from bitarray.util import int2ba
 import sha1
 
 #CONSTANTES
-Q = randprime(2**159, 2**160)
-def eleccionP():
+#Q = randprime(2**159, 2**160)  # q del gammal
+def eleccionP(Q):
     n = randint(ceil((2**(1023 -1))/(2*Q)), floor((2**(1024-1))/(2*Q)))
     p = 2 * n * Q +1
     while(not isprime(p)):
@@ -16,9 +16,9 @@ def eleccionP():
    
     return p,n
 
-P,N = eleccionP()
+#P,N = eleccionP()
 
-def eleccionG():
+def eleccionG(P,N):
 
     h = randint(2, P-2) 
     g = pow(h, (2*N), P)
@@ -26,7 +26,7 @@ def eleccionG():
         h = randint(2,P-2) 
         g = pow(h, (2*N), P)
     return g
-G = eleccionG()
+#G = eleccionG()  # es el alfa del gammal
 
 def hex2int(x):
     res = '0x' + x
@@ -38,24 +38,24 @@ def str2ba(m):
         b.extend(int2ba(x,8))
     return(b)
 
-def firma(g, m, x):
+def firma(g, m, x, P, Q):# añado P y Q
     k = randint(2, Q-2)
     r = pow(g, k, P) % Q
-    H = hex2int(sha1.SHA1(str2ba(m)))
+    H = hex2int(sha1.SHA1(m))
     s = ((H + x * r) * pow(k, -1, Q)) % Q
     return r, s
-
+"""
 def DSA(m):
     x = randint(1, Q) # aquí iria la clave privada del emisor que va a firmar
     r, s = firma(G, m, x)
     y = pow(G, x, P) #clave publica
-    print(y)
-    print(r)
-    print(s)
 
-def verificarFirma(r, s, m, y):
+"""
+def verificarFirma(r, s, m, y, P, Q, G): # añado P y Q
+    s = int(s)
+    r = int(r)
     w = pow(s,-1,Q)
-    H = hex2int(sha1.SHA1(str2ba(m)))
+    H = hex2int(sha1.SHA1(m))
     u1 = H * w % Q
     u2 = r * w % Q
     v = pow(G, u1, P) * pow(y, u2, P)
