@@ -66,12 +66,13 @@ def leerFichero():
     f.close()
     return lectura
 
-def generarGrupo(q):
+def generarGrupo():
+    q = randprime(2**159, 2**160)  
     p = 2 * q + 1
     while not isprime(p):
         q = randprime(2**159, 2**160)  
         p = 2 * q + 1
-    return p
+    return p,q
 
 def generarGenerador(p,q): 
     g = 1
@@ -86,8 +87,8 @@ def generarGenerador(p,q):
 def generarNuevasClaves(nUsuarios):
     q = randprime(2**159, 2**160)  
     p,n = DSA.eleccionP(q)
-    #alpha = generarGenerador(p,q) #alfa realmente es g
-    alpha = DSA.eleccionG(p,n)
+    alpha = generarGenerador(p,q) #alfa realmente es g
+    #alpha = DSA.eleccionG(p,n)
     lista = [p,alpha,q]
     for i in range(nUsuarios):
         L = []

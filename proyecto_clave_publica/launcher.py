@@ -18,6 +18,7 @@ def mostrarMenu():
         print("4.- Firmar un mensaje con clave privada")
         print("5.- Verificar Integridad de Una Firma")
         print("6.- Enviar Mensaje a un Usuario")
+        print("7.- Recibir Mensaje de un usuario")
         print("0.- Salir")
         print("------------------------------------------")
         opt = int(input("Introduce una opcion (1-6):\n"))

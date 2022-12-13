@@ -7,7 +7,9 @@ import sha1
 
 #CONSTANTES
 #Q = randprime(2**159, 2**160)  # q del gammal
-def eleccionP(Q):
+
+def eleccionP():
+    Q = randprime(2**159, 2**160)
     n = randint(ceil((2**(1023 -1))/(2*Q)), floor((2**(1024-1))/(2*Q)))
     p = 2 * n * Q +1
     while(not isprime(p)):
