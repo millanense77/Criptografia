@@ -34,15 +34,22 @@ def int2txt(n):
     return (res.join(bloques))
 
 def escribirFichero(x):
-    output = open("claves_Gammal.pkl", 'wb')
-    pickle.dump(x,output)
-    output.close()
+    try:
+        output = open("./claves_Gammal.pkl", 'wb')
+        pickle.dump(x,output)
+        output.close()
+    except:
+        print("ERROR: No se ha podido escribir el fichero.")
 
 def leerFichero():
-    f=open("claves_Gammal.pkl",'rb')
-    lectura=pickle.load(f)
-    f.close()
-    return lectura
+    try:
+        f=open("claves_Gammal.pkl",'rb')
+        lectura=pickle.load(f)
+        f.close()
+        return lectura
+    except:
+        print("ERROR: No se ha podido leer el fichero.")
+    return 0
 
 
 #Generacion de Claves
@@ -65,6 +72,17 @@ def generarGenerador(p,q):
     return g
 
 def generarParametros():
+
+    q = randprime(2**1023, 2**1024)
+    p = generarGrupo(q)
+    g = generarGenerador(p,q)
+
+    dicc = {}
+    dicc['Grupo'] = p
+    dicc['Generador'] = g
+    escribirFichero(dicc)
+
+    """
     dicc = leerFichero()
     if 'Primo' in dicc: # si Q ya esta creada, se coge del fichero del gammal
         q = dicc['Primo']
@@ -82,43 +100,26 @@ def generarParametros():
     
     print(dicc)
     escribirFichero(dicc)
+    """
 
-
-
-def eleccionUsuarios(dicc):
-    print("Seleccione un usuario de los siguientes: ")
-    for key,value in dicc.items():
-        if(key != 'Generador' and key != 'Grupo'):
-            print(key)
-    user = input("Nombre del usuario: \n")
-    return user
-
-
-def cifrarMensaje():
+def cifrarMensaje(dest, m):
     dicc = leerFichero()
-    print("¿A que usuario va dirigido el mensaje?")
-    dest = eleccionUsuarios(dicc)
-    m = input("Introduzca el mensaje: \n")
-
+    
     v = randint(1, 2*64) % dicc['Grupo']
     V = pow(dicc['Generador'],v,dicc['Grupo'])
     x = pow(dicc[dest][1],v,dicc['Grupo'])
     c = (str2int(m) * x)
-    print('V: '+str(V))
-    print('c: '+str(c))
-    #return (V,c)
+    return (V,c)
 
-def descifrarMensaje():
+def descifrarMensaje(usuario, V, c):
     dicc = leerFichero()
-    print("¿Que usuario eres?")
-    dest = eleccionUsuarios(dicc)
-    V = input("Introduce V: ")
-    c = input("Introduce c: ")
-    y = pow(int(V),dicc[dest][0],dicc['Grupo'])
-    print('y: '+str(y))
+    #print("¿Que usuario eres?")
+    #dest = eleccionUsuarios(dicc)
+    #V = input("Introduce V: ")
+    #c = input("Introduce c: ")
+    y = pow(int(V),dicc[usuario][0],dicc['Grupo'])
     m = int(c) // y
-    print(m)
-    #return int2txt(m)
+    return int2txt(m)
 
 
 

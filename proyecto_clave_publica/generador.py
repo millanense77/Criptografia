@@ -1,7 +1,5 @@
 from random import randint
-import gammal
-import DSA
-
+import gammal, DSA
 
 def mainGeneradorParam(tipo):
     #leer Q del fichero
@@ -10,11 +8,11 @@ def mainGeneradorParam(tipo):
     if(tipo == 'gammal'):
         gammal.generarParametros()
       
-def mainGeneradorClaves(tipo,usuario):
+def mainGeneradorClaves(tipo):
      if (tipo == 'DSA'):
-        altaUsuario('DSA',usuario) 
+        altaUsuario('DSA') 
      if(tipo == 'gammal'):
-        altaUsuario('gammal',usuario)
+        altaUsuario('gammal')
         
         
 #Usuarios
@@ -24,38 +22,24 @@ def generarClavePrivada(p):
 def generarClavePublica(g,k,p):
     return pow(g,k,p)
 
-def altaUsuario(tipo,usuario):
-    if tipo == 'gammal':
+def altaUsuario(tipo, nombre):
+    if tipo == 'DSA':
         dicc = DSA.leerFichero()
         try:
-            q = dicc['Primo']
-            p = dicc['Grupo']
-            g = dicc['Generador']
-            
-            k = generarClavePrivada(p)
-            K = generarClavePublica(g,k,p)
-            dicc[usuario] = [[k], [K]]
-            #escribir usuario en el fichero
+            k = generarClavePrivada(dicc['Primo'])
+            K = generarClavePublica(dicc['Generador'], k, dicc['Grupo'])
+            dicc[nombre] = [k, K]
             print(dicc)
-            gammal.escribirFichero(dicc)
+            DSA.escribirFichero(dicc)
         except:
             print("ERROR: No ha sido posible dar de alta al usuario.")
-    if tipo == 'DSA':
+    if tipo == 'gammal':
         dicc = gammal.leerFichero()
         try:
-           
-            q = dicc['Primo']
-            p = dicc['Grupo']
-            g = dicc['Generador']
-            
-            k = generarClavePrivada(q) 
-            K = generarClavePublica(g,k,p)
-            dicc[usuario] = [[k], [K]]
-            #escribir usuario en el fichero
-            print(dicc)
-            
-           
-            DSA.escribirFichero(dicc)
+            k = generarClavePrivada(dicc['Grupo'])
+            K = generarClavePublica(dicc['Generador'], k, dicc['Grupo'])
+            dicc[nombre] = [k, K]
+            gammal.escribirFichero(dicc)
         except:
             print("ERROR: No ha sido posible dar de alta al usuario.")
 

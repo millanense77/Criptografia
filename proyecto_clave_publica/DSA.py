@@ -7,63 +7,6 @@ import sha1
 import pickle
 import gammal
 
-#CONSTANTES
-
-def eleccionQ():
-    return randprime(2**159, 2**160)
-
-def eleccionP():
-    Q = eleccionQ()
-    n = randint(ceil((2**(1023 -1))/(2*Q)), floor((2**(1024-1))/(2*Q)))
-    p = 2 * n * Q + 1
-    while(not isprime(p)):
-        n = randint(ceil((2**(1023 -1))/(2*Q)), floor((2**(1024-1))/(2*Q)))
-        p = 2 * n * Q + 1
-   
-    return p,Q,n
-
-
-def eleccionG(P,N):
-
-    h = randint(2, P-2) 
-    g = pow(h, (2*N), P)
-    while(g == 1):
-        h = randint(2,P-2) 
-        g = pow(h, (2*N), P)
-    return g
-
-
-def generarParametros():
-  
-    dicc = leerFichero()
-    if 'Primo' in dicc: # si Q ya esta creada, se coge del fichero del gammal
-        q = dicc['Primo']
-        
-    else: 
-        q = eleccionQ()  
-    
-    p,n = eleccionP(q)
-    g = eleccionG(p,n)
-    
-    dicc = {}
-    dicc['Primo'] = q
-    dicc['Grupo'] = p
-    dicc['Generador'] = g
-    print(dicc)
-    escribirFichero(dicc)
-
-def escribirFichero(x):
-    output = open("claves_DSA.pkl", 'wb')
-    pickle.dump(x,output)
-    output.close()
-
-def leerFichero():
-    f=open("claves_DSA.pkl",'rb')
-    lectura=pickle.load(f)
-    f.close()
-    return lectura
-    
-
 def hex2int(x):
     res = '0x' + x
     return eval(res)
@@ -75,13 +18,91 @@ def str2ba(m):
         b.extend(int2ba(x,8))
     return(b)
 
-def firma(g, m, x, P, Q):# añado P y Q
-    k = randint(2, Q-2)
-    r = pow(g, k, P) % Q
+def escribirFichero(x):
+    try:
+        output = open("claves_DSA.pkl", 'wb')
+        pickle.dump(x,output)
+        output.close()
+    except:
+        print("ERROR: No se pudo escribir el fichero.")
+
+def leerFichero():
+    try:
+        f=open("claves_DSA.pkl",'rb')
+        lectura=pickle.load(f)
+        f.close()
+        return lectura
+    except:
+        print("ERROR: No se pudo leer el fichero.")
+    return 0
+
+
+def eleccionQ():
+    return randprime(2**159, 2**160)
+
+def eleccionP(Q):
+    
+    n = randint(ceil((2**(1023 -1))/(2*Q)), floor((2**(1024-1))/(2*Q)))
+    p = 2 * n * Q + 1
+    while(not isprime(p)):
+        n = randint(ceil((2**(1023 -1))/(2*Q)), floor((2**(1024-1))/(2*Q)))
+        p = 2 * n * Q + 1
+   
+    return p,n
+
+def eleccionG(P,N):
+
+    h = randint(2, P-2) 
+    g = pow(h, (2*N), P)
+    while(g == 1):
+        h = randint(2,P-2) 
+        g = pow(h, (2*N), P)
+    return g
+
+def generarParametros():
+    q = eleccionQ()
+    p,n = eleccionP(q)
+    g = eleccionG(p,n)
+    
+    dicc = {}
+    dicc['Primo'] = q
+    dicc['Grupo'] = p
+    dicc['Generador'] = g
+    escribirFichero(dicc)
+
+
+def firma(emisor, m):# añado P y Q
+    dicc = leerFichero()
+
+    privada = dicc[emisor][0]
+    q = dicc['Primo']
+    g = dicc['Generador']
+    p = dicc['Grupo']
+    k = randint(2, q-2)
+    r = pow(g, k, p) % q
+
     H = hex2int(sha1.SHA1(m))
-    s = ((H + x * r) * pow(k, -1, Q)) % Q
+    s = ((H + privada * r) * pow(k, -1, q)) % q
+
     return r, s
 
+def verificarFirma(r, s, m, emisor): # añado P y Q
+    dicc = leerFichero()
+    
+    publica = dicc[emisor][1]
+    Q = dicc['Primo']
+    G = dicc['Generador']
+    P = dicc['Grupo']
+    
+    s = int(s)
+    r = int(r)
+    w = pow(s,-1,Q)
+    H = hex2int(sha1.SHA1(m))
+    u1 = H * w % Q
+    u2 = r * w % Q
+    v = pow(G, u1, P) * pow(publica, u2, P)
+    v = (v % P) % Q
+    return(v == r)
 
 """
 
@@ -91,17 +112,6 @@ def generarClavesUsuario(Q,G,P):
     y = pow(G, x, P) #clave publica
     return x,y
 """
-
-def verificarFirma(r, s, m, y, P, Q, G): # añado P y Q
-    s = int(s)
-    r = int(r)
-    w = pow(s,-1,Q)
-    H = hex2int(sha1.SHA1(m))
-    u1 = H * w % Q
-    u2 = r * w % Q
-    v = pow(G, u1, P) * pow(y, u2, P)
-    v = (v % P) % Q
-    return(v == r)
 
     
 
