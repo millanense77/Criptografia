@@ -2,9 +2,11 @@ from bitarray import bitarray
 from bitarray.util import hex2ba, ba2hex, ba2int, int2ba
 from sympy import randprime, isprime
 from random import randint
+import launcher
 import pickle
 import DSA
 
+#Helpers
 def str2ba(m): 
     M = list(map(ord, m))
     b = bitarray()
@@ -31,50 +33,28 @@ def int2txt(n):
     res = ''
     return (res.join(bloques))
 
-def lista2Diccionario(lista):
-    dicc = {}
-    dicc['Grupo'] = lista[0]
-    dicc['Generador'] = lista[1]
-    dicc['Q'] = lista[2]
-    for i in range(3,len(lista)):
-        x = "Usuario_"+ str(i-1)
-        dicc[x+"_privada"] = lista[i][0]
-        dicc[x+"_publica"] = lista[i][1]
-    return dicc
-
-def dicc2Lista(dicc):
-    lista = []
-    aux = []
-    for key,value in dicc.items(): 
-        aux.append(value)
-    lista = [aux[0], aux[1], aux[2]]
-    for i in range(3,len(aux)-1,2):
-        L = []
-        L.append(aux[i])
-        L.append(aux[i+1])
-        lista.append(L)
-    return lista
-
 def escribirFichero(x):
-    output = open('claves.pkl', 'wb')
+    output = open("claves_Gammal.pkl", 'wb')
     pickle.dump(x,output)
     output.close()
 
 def leerFichero():
-    f=open('claves.pkl','rb')
+    f=open("claves_Gammal.pkl",'rb')
     lectura=pickle.load(f)
     f.close()
     return lectura
 
-def generarGrupo():
-    q = randprime(2**159, 2**160)  
+
+#Generacion de Claves
+#Administrador
+def generarGrupo(q):
     p = 2 * q + 1
     while not isprime(p):
         q = randprime(2**159, 2**160)  
         p = 2 * q + 1
-    return p,q
+    return p
 
-def generarGenerador(p,q): 
+def generarGenerador(p,q):
     g = 1
     a = b = 1 
     while(a == 1 and b == 1):
@@ -84,39 +64,61 @@ def generarGenerador(p,q):
             g = g + 1
     return g
 
-def generarNuevasClaves(nUsuarios):
-    q = randprime(2**159, 2**160)  
-    p,n = DSA.eleccionP(q)
-    alpha = generarGenerador(p,q) #alfa realmente es g
-    #alpha = DSA.eleccionG(p,n)
-    lista = [p,alpha,q]
-    for i in range(nUsuarios):
-        L = []
-        x = randint(2,p-1)
-        X = pow(alpha, x, p) 
-        L.append(x)
-        L.append(X)
-        lista.append(L)
-    
+def generarParametros():
+    dicc = leerFichero()
+    if 'Primo' in dicc: # si Q ya esta creada, se coge del fichero del gammal
+        q = dicc['Primo']
+        
+    else:
+        q = randprime(2**1023, 2**1024)
+        
+    p = generarGrupo(q)
+    g = generarGenerador(p,q)
+
     dicc = {}
-    dicc = lista2Diccionario(lista)
+    dicc['Primo'] = q
+    dicc['Grupo'] = p
+    dicc['Generador'] = g
+    
+    print(dicc)
     escribirFichero(dicc)
 
-def establecerClaves():
-    flag = False
 
-    while(flag == False):
-        x = input('¿Desea generar nuevas claves?(Y/n): ')
-        if(x == 'Y' or x == 'y'):
-            flag = True
-            i = input('\nIntroduzca cantidad de usuarios: ')
-            generarNuevasClaves(int(i))
-        if(x == 'n' or x == 'N'):
-            flag = True
-        if(flag == False):
-            print('Introduzca Y, y, N o n')
 
-    dicc = {}
+def eleccionUsuarios(dicc):
+    print("Seleccione un usuario de los siguientes: ")
+    for key,value in dicc.items():
+        if(key != 'Generador' and key != 'Grupo'):
+            print(key)
+    user = input("Nombre del usuario: \n")
+    return user
+
+
+def cifrarMensaje():
     dicc = leerFichero()
-    L = dicc2Lista(dicc)
-    return (L[0], L[1], L[2], L[3:])
+    print("¿A que usuario va dirigido el mensaje?")
+    dest = eleccionUsuarios(dicc)
+    m = input("Introduzca el mensaje: \n")
+
+    v = randint(1, 2*64) % dicc['Grupo']
+    V = pow(dicc['Generador'],v,dicc['Grupo'])
+    x = pow(dicc[dest][1],v,dicc['Grupo'])
+    c = (str2int(m) * x)
+    print('V: '+str(V))
+    print('c: '+str(c))
+    #return (V,c)
+
+def descifrarMensaje():
+    dicc = leerFichero()
+    print("¿Que usuario eres?")
+    dest = eleccionUsuarios(dicc)
+    V = input("Introduce V: ")
+    c = input("Introduce c: ")
+    y = pow(int(V),dicc[dest][0],dicc['Grupo'])
+    print('y: '+str(y))
+    m = int(c) // y
+    print(m)
+    #return int2txt(m)
+
+
+

@@ -13,16 +13,18 @@ if __name__ == "__main__":
     while(opcion!= 0):
         opcion = int(mostrarMenu())
         if opcion == 1: #Generar DSA
-            P,N = DSA.eleccionP()
+            P,Q,N = DSA.eleccionP()
             G = DSA.eleccionG(P, N)
-            print(P)
-            print(N)
-            print(G)
+            print("P:" + str(P))
+            print("Q:" + str(Q))
+            print("G:" + str(G))
+            
         elif(opcion == 2):#Generar ElGamal
             p,q = gammal.generarGrupo()
             g = gammal.generarGenerador(p, q)
-            print(p)
-            print(g)
+            print("p:" + str(p))
+            print("g:" + str(g))
+            
         elif(opcion == 0):
             print("Saliendo...")
         else:

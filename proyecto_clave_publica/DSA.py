@@ -4,21 +4,24 @@ from math import floor, ceil
 from bitarray import bitarray
 from bitarray.util import int2ba
 import sha1
+import pickle
+import gammal
 
 #CONSTANTES
-#Q = randprime(2**159, 2**160)  # q del gammal
+
+def eleccionQ():
+    return randprime(2**159, 2**160)
 
 def eleccionP():
-    Q = randprime(2**159, 2**160)
+    Q = eleccionQ()
     n = randint(ceil((2**(1023 -1))/(2*Q)), floor((2**(1024-1))/(2*Q)))
-    p = 2 * n * Q +1
+    p = 2 * n * Q + 1
     while(not isprime(p)):
         n = randint(ceil((2**(1023 -1))/(2*Q)), floor((2**(1024-1))/(2*Q)))
         p = 2 * n * Q + 1
    
-    return p,n
+    return p,Q,n
 
-#P,N = eleccionP()
 
 def eleccionG(P,N):
 
@@ -28,11 +31,43 @@ def eleccionG(P,N):
         h = randint(2,P-2) 
         g = pow(h, (2*N), P)
     return g
-#G = eleccionG()  # es el alfa del gammal
+
+
+def generarParametros():
+  
+    dicc = leerFichero()
+    if 'Primo' in dicc: # si Q ya esta creada, se coge del fichero del gammal
+        q = dicc['Primo']
+        
+    else: 
+        q = eleccionQ()  
+    
+    p,n = eleccionP(q)
+    g = eleccionG(p,n)
+    
+    dicc = {}
+    dicc['Primo'] = q
+    dicc['Grupo'] = p
+    dicc['Generador'] = g
+    print(dicc)
+    escribirFichero(dicc)
+
+def escribirFichero(x):
+    output = open("claves_DSA.pkl", 'wb')
+    pickle.dump(x,output)
+    output.close()
+
+def leerFichero():
+    f=open("claves_DSA.pkl",'rb')
+    lectura=pickle.load(f)
+    f.close()
+    return lectura
+    
 
 def hex2int(x):
     res = '0x' + x
     return eval(res)
+
 def str2ba(m): 
     M = list(map(ord, m))
     b = bitarray()
@@ -46,13 +81,17 @@ def firma(g, m, x, P, Q):# añado P y Q
     H = hex2int(sha1.SHA1(m))
     s = ((H + x * r) * pow(k, -1, Q)) % Q
     return r, s
-"""
-def DSA(m):
-    x = randint(1, Q) # aquí iria la clave privada del emisor que va a firmar
-    r, s = firma(G, m, x)
-    y = pow(G, x, P) #clave publica
+
 
 """
+
+def generarClavesUsuario(Q,G,P):
+    x = randint(1, Q) # aquí iria la clave privada del emisor que va a firmar
+    #r, s = firma(G, m, x)
+    y = pow(G, x, P) #clave publica
+    return x,y
+"""
+
 def verificarFirma(r, s, m, y, P, Q, G): # añado P y Q
     s = int(s)
     r = int(r)
@@ -64,16 +103,6 @@ def verificarFirma(r, s, m, y, P, Q, G): # añado P y Q
     v = (v % P) % Q
     return(v == r)
 
+    
 
 
-#sha1.SHA1('abc')
-
-"""
-Cada usuario -> 0 < x < q aleatorio  -> clave privada
-
-En dos txt aparte
-Guardar claves privads y publicas en diccionarios:
-Privadas = {Pepe: x, juan: y}
-Publicas = {Pepe: gx, juan: gy}
-"""
-#m = "abc"

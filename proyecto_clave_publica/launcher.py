@@ -5,7 +5,7 @@ p = 0
 alpha = 0
 lista = []
 user = -1
-q = 0
+
 def mostrarMenu():
         print("\n------------------------------------------")
         if(user == -1):
@@ -13,12 +13,12 @@ def mostrarMenu():
         else:
             print("***** Usuario "+str(user+1)+" *****")
         print("1.- Generar hash SHA-1")
-        print("2.- Generar Claves")
+        print("2.- Generar Claves y parametros Gammal")
         print("3.- Iniciar Sesion")
         print("4.- Firmar un mensaje con clave privada")
         print("5.- Verificar Integridad de Una Firma")
         print("6.- Enviar Mensaje a un Usuario")
-        print("7.- Recibir Mensaje de un usuario")
+        print("7.- Generar Claves y parametros DSA")
         print("0.- Salir")
         print("------------------------------------------")
         opt = int(input("Introduce una opcion (1-6):\n"))
@@ -59,7 +59,7 @@ if __name__ == "__main__":
             print("SHA-1: "+sha1.SHA1(cad)+"\n")
         
         elif(opcion == 2):#Generar claves
-            p, alpha, q, lista = gammal.establecerClaves()
+            p, alpha, lista = gammal.establecerClaves()
             print("\nClaves generadas correctamente.")
         
         elif(opcion == 3):#Iniciar sesion
@@ -73,24 +73,22 @@ if __name__ == "__main__":
             if(user == -1):
                 print("\nDebe iniciar sesion antes.")
             else:
+                g = p
                 x = lista[user][0]
                 m = input("Introduce el mensaje a firmar\n")
-                r,s = DSA.firma(alpha,m,x,p,q)
-                print("r: "+str(r))    
-                print("s: "+str(s)) 
+                print("g: "+str(g)+" x: "+str(x))
+                r,s = DSA.firma(g,m,x)
+                print(r,s)                
         
         elif(opcion == 5):#Verificar firma
             if(user == -1):
                 print("\nDebe iniciar sesion antes.")
             else:
-                print("¿Que usuario ha firmado el mensaje?")
-                dest = eleccionUsuario(-1)
                 r = input("Introduce r\n")
                 s = input("Introduce s\n")
                 m = input("Introduce el mensaje\n")
-                y = lista[dest][1]
-                print(y)
-                res = DSA.verificarFirma(r, s, m, y, p, q, alpha)
+                y = input("Introduce la clave publica\n")
+                res = DSA.verificarFirma(r, s, m, y)
                 if res:
                     print("La firma es válida\n")
                 else:
@@ -101,6 +99,9 @@ if __name__ == "__main__":
                 print("\nDebe iniciar sesion antes.")
             else:
                 enviarMensaje()
+        elif(opcion == 7):
+            print("Desea generar claves dsa")
+            DSA.generarClaves()
         
         elif(opcion == 0):
             print("Saliendo...")
