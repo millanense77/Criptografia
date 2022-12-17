@@ -1,6 +1,12 @@
 import generador
 
 def mostrarMenu():
+    """
+    Este metodo muestra el menu principal y permite
+    al usuario elegir la opcion.
+    No recibe ningun parametro.
+    Devuelve un numero entero.
+    """
     print("1.- Generar claves de usuario DSA")
     print("2.- Generar claves de usuario ElGamal")    
     print("0.- Salir")
@@ -18,12 +24,8 @@ if __name__ == "__main__":
             nombre = input("Introduce tu nombre de usuario:\n")
             if opcion == 1: #Generar usuarios DSA
                 generador.altaUsuario('DSA', nombre)
-                #P = int(input("Introduce P:\n"))
-                #Q = int(input("Introduce Q:\n"))
-                #G = int(input("Introduce G:\n"))
+                
             elif(opcion == 2): #Generar usuarios ElGamal
                 generador.altaUsuario('gammal', nombre)
-                #p = int(input("Introduce p:\n"))
-                #g = int(input("Introduce g:\n"))
             else:
                 print("Opción no válida")

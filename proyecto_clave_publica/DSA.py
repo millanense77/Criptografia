@@ -3,15 +3,23 @@ from random import randint
 from math import floor, ceil
 from bitarray import bitarray
 from bitarray.util import int2ba
-import sha1
-import pickle
-import gammal
+import sha1, pickle
 
 def hex2int(x):
+    """
+    Este metodo convierte un numero hexadecimal en un numero entero.
+    Recibe una cadena de texto.
+    Devuelve un numero hexadecimal.
+    """
     res = '0x' + x
     return eval(res)
 
-def str2ba(m): 
+def str2ba(m):
+    """
+    Este metodo convierte un string en un bitarray.
+    Recibe una cadena de texto.
+    Devuelve un bitarray.
+    """
     M = list(map(ord, m))
     b = bitarray()
     for x in M:
@@ -19,6 +27,12 @@ def str2ba(m):
     return(b)
 
 def escribirFichero(x):
+    """
+    Este metodo crea un fichero binario con el
+    contenido que se le indique.
+    Recibe un tipo de dato sin especificar.
+    No devuelve nada.
+    """
     try:
         output = open("claves_DSA.pkl", 'wb')
         pickle.dump(x,output)
@@ -27,6 +41,12 @@ def escribirFichero(x):
         print("ERROR: No se pudo escribir el fichero.")
 
 def leerFichero():
+    """
+    Este metodo lee un fichero binario y recoje
+    su contenido.
+    No recibe nada.
+    Devuelve el contenido del fichero.
+    """
     try:
         f=open("claves_DSA.pkl",'rb')
         lectura=pickle.load(f)
@@ -38,10 +58,19 @@ def leerFichero():
 
 
 def eleccionQ():
+    """
+    Este metodo genera un numero primo aleatorio.
+    No recibe ningun parametro.
+    Devuelve un numero entero.
+    """
     return randprime(2**159, 2**160)
 
 def eleccionP(Q):
-    
+    """
+    Este metodo crea un grupo multiplicativo finito.
+    Recibe un numero entero.
+    Devuelve dos numeros enteros.
+    """
     n = randint(ceil((2**(1023 -1))/(2*Q)), floor((2**(1024-1))/(2*Q)))
     p = 2 * n * Q + 1
     while(not isprime(p)):
@@ -51,7 +80,12 @@ def eleccionP(Q):
     return p,n
 
 def eleccionG(P,N):
-
+    """
+    Este metodo calcula un numero generador
+    perteneciente al grupo finito.
+    Recibe dos numeros enteros.
+    Devuelve un numero entero.
+    """
     h = randint(2, P-2) 
     g = pow(h, (2*N), P)
     while(g == 1):
@@ -60,18 +94,34 @@ def eleccionG(P,N):
     return g
 
 def generarParametros():
-    q = eleccionQ()
-    p,n = eleccionP(q)
-    g = eleccionG(p,n)
-    
-    dicc = {}
-    dicc['Primo'] = q
-    dicc['Grupo'] = p
-    dicc['Generador'] = g
-    escribirFichero(dicc)
+    """
+    Este metodo crea los parametros necesarios
+    para el algoritmo DSA y los guarda en un fichero.
+    No recibe ningun parametro.
+    Devuelve un booleano.
+    """
+    try:
+        q = eleccionQ()
+        p,n = eleccionP(q)
+        g = eleccionG(p,n)
+        
+        dicc = {}
+        dicc['Primo'] = q
+        dicc['Grupo'] = p
+        dicc['Generador'] = g
+        escribirFichero(dicc)
+        return True
+    except:
+        return False
 
 
-def firma(emisor, m):# añado P y Q
+def firma(emisor, m):
+    """
+    Este metodo permite al usuario firmar un mensaje
+    aplicando el algoritmo DSA.
+    Recibe un numero entero y una cadena de texto.
+    Devuelve dos numeros enteros.
+    """
     dicc = leerFichero()
 
     privada = dicc[emisor][0]
@@ -86,7 +136,13 @@ def firma(emisor, m):# añado P y Q
 
     return r, s
 
-def verificarFirma(r, s, m, emisor): # añado P y Q
+def verificarFirma(r, s, m, emisor):
+    """
+    Este metodo comprueba si una firma es verdadera o falsa,
+    aplicando el algoritmo DSA.
+    Recibe tres numeros enteros y una cadena de texto.
+    Devuelve un booleano.
+    """
     dicc = leerFichero()
     
     publica = dicc[emisor][1]
@@ -104,15 +160,5 @@ def verificarFirma(r, s, m, emisor): # añado P y Q
     v = (v % P) % Q
     return(v == r)
 
-"""
-
-def generarClavesUsuario(Q,G,P):
-    x = randint(1, Q) # aquí iria la clave privada del emisor que va a firmar
-    #r, s = firma(G, m, x)
-    y = pow(G, x, P) #clave publica
-    return x,y
-"""
-
-    
 
 

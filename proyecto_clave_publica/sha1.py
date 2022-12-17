@@ -3,7 +3,12 @@ from bitarray.util import hex2ba, ba2hex, ba2int, int2ba
 
 HASH = hex2ba("67452301EFCDAB8998BADCFE10325476C3D2E1F0")
 
-def str2ba(m): 
+def str2ba(m):
+    """
+    Este metodo convierte un string en un bitarray.
+    Recibe una cadena de texto.
+    Devuelve un bitarray.
+    """
     M = list(map(ord, m))
     b = bitarray()
     for x in M:
@@ -11,9 +16,19 @@ def str2ba(m):
     return(b)
 
 def str2int(m):
+    """
+    Este metodo convierte un string en un numero entero.
+    Recibe una cadena de texto.
+    Devuelve un numero entero.
+    """
     return(ba2int(str2ba(m)))
 
 def str2hex(m):
+    """
+    Este metodo convierte un string en un numero hexadecimal.
+    Recibe una cadena de texto.
+    Devuelve un numero hexadecimal.
+    """
     return(ba2hex(str2ba(m)))
 
 #Padding
@@ -24,10 +39,8 @@ def padding(b):
     Recibe un bitarray.
     Devuelve un bitarray de tamaño multiplo 512.
     """
-    tam = len(b) #Tamaño del bitarray original
-    L = tam - (tam//512*512) #Tamaño del ultimo bloque si se divide en bloques de 512 bits
-    #Si el ultimo bloque es mayor o igual a 448 calcula k0 creando un bloque mas
-    #Si no calcula k0 rellenando el que hay.
+    tam = len(b)
+    L = tam - (tam//512*512)
     if(L % 512 < 448): k = 448-L-1
     else: k = 960-L-1
     B = b.copy()
@@ -63,6 +76,12 @@ def ROTL(e, k):
     return E
 
 def expand(bloque):
+    """
+    Este metodo transforma los 16 sub-bloques iniciales de 32 bits
+    en una secuencia de 80 palabras de 32 bits.
+    Recibe 16 sub-bloques de 32 bits.
+    Devuelve 80 bloques de 32 bits.
+    """
     w = []
     for i in range(0,512,32):
         w.append(bloque[i:i+32])
@@ -106,6 +125,11 @@ def constante(i):
 
 
 def sha1(hash, bloque):
+    """
+    Este metodo realiza el hash de un bloque recibido.
+    Recibe un bitarray de tamaño 160 bits y un bloque de 512 bits.
+    Devuelve un bitarray de tamaño 160 bits.
+    """
     w = expand(bloque)
     AA = hash[0:32]
     BB = hash[32:32*2]
@@ -132,7 +156,12 @@ def sha1(hash, bloque):
     return res
 
 def SHA1(mensaje):
-    
+    """
+    Metodo principal de generación de SHA-1, realiza el preproceso, la inicializacion
+    de variables y lanza el bucle principal que procesa cada bloque generado.
+    Recibe una cadena de texto.
+    Devuelve un numero en hexadecimal.
+    """
     mensaje = padding(hex2ba(str2hex(mensaje)))
     lista = parsing(mensaje,512)
     hash = HASH
