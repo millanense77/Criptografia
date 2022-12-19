@@ -1,10 +1,6 @@
-from functools import reduce as reduce
-
 from bitarray import bitarray
-from bitarray.util import ba2hex as b2h
-from bitarray.util import ba2int as b2i
-from bitarray.util import hex2ba as h2b
-from bitarray.util import int2ba as i2b
+from bitarray.util import hex2ba as h2b, ba2hex as b2h, ba2int as b2i, int2ba as i2b
+from functools import reduce as reduce
 
 
 def addRoundKey(E, k):
@@ -17,7 +13,6 @@ def addRoundKey(E, k):
     Kb = h2b(k)
     X = e ^ Kb
     return X
-
 
 def sBox(b, opcion):
     """
@@ -176,7 +171,7 @@ def xtime(b):
     b.append(0)
     if(b[0]==1):
         b ^= bitarray('100011011')
-    del[b[0]]  # type: ignore
+    del[b[0]]
     return b
 
 def mult(v):
@@ -234,10 +229,10 @@ def expand(k):
     K = []
     K.append(h2b(k))
     for i in range(10):
-        previa = K[-1]#Ultima posicion del conjunto de claves => K[3]
+        previa = K[-1]
         Previa = trozos(previa)
         aux = Previa[3]
-        aux = perm(aux, 8)#Rotacion circular de 8 bits a la izquierda
+        aux = perm(aux, 8)
         aux = subByte(aux, 32, 0)
         aux = aux ^ h2b(C[i]) ^ Previa[0] 
         L =[]
@@ -252,7 +247,6 @@ def expand(k):
         res.append(b2h(K[i]))
     return res
 
-  
 def AES_cif(msj, k):
     """
     Funcion principal del algortimo, desde la que se lanza 
@@ -271,29 +265,40 @@ def AES_cif(msj, k):
         E = addRoundKey(E, K[r])
     return b2h(E)
 
-def stringToHexadecimal(msj):
-    res = ''
-    for i in msj:
-        aux = hex(ord(i))
-        res += aux[2:]
-    res = res[6:]
-    return res
+def formatoMsj(txt):
+    """
+    Esta funcion formatea la cadena de texto recibida
+    a un formato correto (longitud 32 y en hexadecimal).
+    Recibe una cadena de texto.
+    Devuelve True si es correcta o False si no esta bien.
+    """
+    if(len(txt)<32):
+        k = 32 - len(txt)
+        a = '0' * k
+        txt = a + txt
+    elif(len(txt)>32):
+        txt = txt[:32]
+    return txt
 
-def CBC_cifrado(msj, key):
+def CBC_cifrado(msj, key, IV):
     """
     Esta es la funcion desde la que se lanza 
     todo el proceso de cifrado CBC.
-    Recibe un mensaje y una clave en hexadecimal.
+    Recibe tres parametros en hexadecimal.
     Devuelve una cadena hexadecimal.
     """
-    
-    flag = False
-    while(flag == False):
-        IV = input('Introduzca un vector de inicialización de 32 bytes: ')
-        IV = stringToHexadecimal(IV)
-        flag = formatoMsj(IV)
-    mensaje = b2h(h2b(msj) ^ h2b(IV))
-    cifrado = AES_cif(mensaje, key)
+    #Dividimos en bloques
+    lista = []
+    for i in range(0, len(msj),32):
+        aux = formatoMsj(msj[i:i+32])
+        lista.append(aux)
+    key = formatoMsj(key)
+    IV = formatoMsj(IV)
+
+    cifrado = b2h(h2b(lista[0]) ^ h2b(IV))
+    for i in range(1, len(lista)):
+        mensaje = b2h(h2b(lista[i]) ^ h2b(cifrado))
+        cifrado = AES_cif(mensaje, key)
     return cifrado
 
 def ECB_cifrado(cadena,k):
@@ -315,165 +320,3 @@ def ECB_cifrado(cadena,k):
         cifrado += i
         
     return(cifrado)
-
-"""
-               ------------ 
-                DESCIFRADO
-               ------------ 
-"""
-def invPerm(e, k):
-    """
-    Esta funcion realiza una permutacion cíclica de derecha a izquierda
-    Recibe un bitarray y el numero de posiciones.
-    Devuelve el bitarray permutado.
-    """
-    E = e.copy()  #E es la fila de la matrix 4x4 y k es el elemento de la fila
-    for i in range(k):
-        E.insert(0,E[len(E) - 1])
-        del(E[len(E) - 1])
-    return E
-
-def invShiftRows(R):
-    """
-    Esta funcion llama a la funcion arrayToMat, invPerm y mat2Array
-    Recibe un bitarray
-    Devuelve un bitarray
-    """
-    E = []
-    R = arrayToMat(R)
-    for i in range(4):
-        E.append(invPerm(R[i],i))    
-    E = mat2Array(E)
-    return E
-
-def invMixColumns(x):
-    """
-    Esta funcion realiza la operacion inversa a mixColumn,
-    multiplicando cada columna por la matriz
-    [[E,B.D,9],[9,E,B,D],[D,9,E,B],[B,9,D,E]]
-    Recibe un bitarray
-    Devuelve un bitarray
-    """
-    x = transpose(arrayToMat(x))
-    R = []
-    for v in x:
-        S = []
-        for i in range(4):
-            aux = xtime(xtime(xtime(v[0] ^ v[1] ^ v[2] ^ v[3]))) ^ xtime(xtime(v[0] ^ v[2])) ^ xtime(v[0] ^ v[1]) ^ v[1] ^ v[2] ^ v[3]
-            # x^3(a+b+c+d) + x^2(a+c) + x(a+b) + b + c + d
-            S.append(aux)
-            v.append(v[0])
-            del(v[0])
-        R.append(S)
-    R = mat2Array(transpose(R))
-    return R
-
-def AES_des(msj, k):
-    """
-    Esta es la funcion principal que lleva a cabo
-    todo el proceso de descifrado.
-    Recibe un mensaje y una clave en hexadecimal.
-    Devuelve una cadena hexadecimal.
-    """
-    K = expand(k)
-
-    E = addRoundKey(msj, K[10])
-
-    for i in reversed(range(1,10)):
-        E = invShiftRows(E)
-        E = subByte(E, 128, 1)
-        E = addRoundKey(b2h(E), K[i])
-        E = invMixColumns(E)
-        
-    E = invShiftRows(E)
-    E = subByte(E, 128, 1)
-    E = addRoundKey(b2h(E), K[0])
-    return b2h(E)
-
-def CBC_descifrado(msj, key):
-    """
-    Esta es la funcion principal que lleva a cabo
-    todo el proceso de descifrado CBC.
-    Recibe un mensaje y una clave en hexadecimal.
-    Devuelve una cadena hexadecimal.
-    """
-    #IV = stringToHexadecimal('ALONSOCARLOSFERNAND')
-    IV = input('Introduzca un vector de inicializacion de 128 bits: ')
-    input = AES_des(msj, key)
-    descifrado = b2h(h2b(input) ^ h2b(IV))
-    return descifrado
-
-def invECB(cadena,k):
-    """
-    Esta es la funcion principal que lleva a cabo
-    todo el proceso de descifrado ECB.
-    Recibe un mensaje y una clave en hexadecimal.
-    Devuelve una cadena hexadecimal.
-    """
-    bloques = []
-    for i in range(0,len(cadena),128):
-        bloques.append((cadena[i:i+128]))   
-    bloquesDes = []
-    for i in bloques:
-        bloquesDes.append(AES_des(i,k))
-    descifrado = "" 
-    for i in bloquesDes:
-        descifrado += i
-        
-    return(descifrado)
-
-def formatoMsj(txt):
-    """
-    Esta es la funcion comprueba que el formato de la cadena
-    que recibe es el correto (longitud 32 y en hexadecimal).
-    Recibe una cadena de texto.
-    Devuelve True si es correcta o False si no esta bien.
-    """
-    if(len(txt)<32 or len(txt)>32):
-        print('La cadena debe tener 32 bytes de longitud.')
-        return False
-    try:
-        int(txt, 16)
-    except: 
-        print('La cadena debe ser en hexadecimal')
-        return False
-    
-    return True
-
-def main():
-    #Introduccion y comprobacion del mensaje
-    flag = False
-    while(flag == False):
-        msj = input('Introduzca un mensaje en hexadecimal de 32 bytes: ')
-        flag = formatoMsj(msj)
-    #Introduccion y comprobacion de la clave
-    flag = False
-    while(flag == False): 
-        key = input('Introduzca una clave en hexadeciaml de longitud maxima 32 bytes: ')
-        aux = key
-        if(len(aux)<32):
-            i = 0
-            while(len(aux)<32):
-                aux += aux[i]
-                i = i + 1
-        flag = formatoMsj(aux)
-        
-    print('\nMensaje sin cifrar: '+str(msj))
-    print("Clave: "+str(key))
-    
-    CBC = CBC_cifrado(msj, aux)
-    print('\nCifrado con CBC: '+str(CBC))
-    CBC = CBC_descifrado(CBC,aux)
-    print('\nDescifrado con CBC: '+str(CBC))
-
-    ECB = ECB_cifrado(msj, aux)
-    print('\nCifrado con ECB: '+str(ECB))
-    ECB = invECB(ECB,aux)
-    print('Descifrado con ECB: '+str(ECB))
-
-main()
-
-#main('00112233445566778899aabbccddeeff','000102030405060708090a0b0c0d0e0f')
-
-#msj = '00112233445566778899aabbccddeeff'
-#key = '000102030405060708090a0b0c0d0e0f'
