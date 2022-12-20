@@ -86,7 +86,7 @@ def CBC_descifrado(msj, key, IV):
     Esta es la funcion principal que lleva a cabo
     todo el proceso de descifrado CBC.
     Recibe un mensaje y una clave en hexadecimal.
-    Devuelve una cadena hexadecimal.
+    Devuelve una string.
     """
     lista = []
     for i in range(0, len(msj),32):
@@ -99,19 +99,20 @@ def CBC_descifrado(msj, key, IV):
     for i in range(1, len(lista)):
         mensaje = AES_des(lista[i], key)
         descifrado = b2h(h2b(mensaje) ^ h2b(descifrado))
-    return descifrado
+    return (bytes.fromhex(descifrado).decode('utf-8'))
 
 def invECB(cadena,k):
     """
     Esta es la funcion principal que lleva a cabo
     todo el proceso de descifrado ECB.
     Recibe un mensaje y una clave en hexadecimal.
-    Devuelve una cadena hexadecimal.
+    Devuelve un string.
     """
     bloques = []
     for i in range(0,len(cadena),128):
         bloques.append((cadena[i:i+128]))   
     bloquesDes = []
+    
     k = formatoMsj(k)
     for i in bloques:
         bloquesDes.append(AES_des(formatoMsj(i),k))
@@ -119,5 +120,5 @@ def invECB(cadena,k):
     for i in bloquesDes:
         descifrado += i
         
-    return(descifrado)
+    return(bytes.fromhex(descifrado).decode('utf-8'))
 
