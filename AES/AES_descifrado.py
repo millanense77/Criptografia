@@ -1,6 +1,7 @@
 from bitarray import bitarray
 from bitarray.util import hex2ba as h2b, ba2hex as b2h, ba2int as b2i, int2ba as i2b
 import AES_cifrado
+from AES_cifrado import formatoMsj
 
 def invPerm(e, k):
     """
@@ -111,8 +112,9 @@ def invECB(cadena,k):
     for i in range(0,len(cadena),128):
         bloques.append((cadena[i:i+128]))   
     bloquesDes = []
+    k = formatoMsj(k)
     for i in bloques:
-        bloquesDes.append(AES_des(i,k))
+        bloquesDes.append(AES_des(formatoMsj(i),k))
     descifrado = "" 
     for i in bloquesDes:
         descifrado += i

@@ -292,6 +292,7 @@ def CBC_cifrado(msj, key, IV):
     for i in range(0, len(msj),32):
         aux = formatoMsj(msj[i:i+32])
         lista.append(aux)
+        
     key = formatoMsj(key)
     IV = formatoMsj(IV)
 
@@ -312,9 +313,11 @@ def ECB_cifrado(cadena,k):
     for i in range(0,len(cadena),128):
         bloques.append(cadena[i:i+128])
         
+    k= formatoMsj(k)   
+     
     bloquesCif = []
     for i in bloques:
-        bloquesCif.append(AES_cif(i,k))
+        bloquesCif.append(AES_cif(formatoMsj(i),k))
     cifrado = "" 
     for i in bloquesCif:
         cifrado += i
