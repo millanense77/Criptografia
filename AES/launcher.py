@@ -73,12 +73,12 @@ if __name__ == "__main__":
                 print('\nDescifrado con CBC: '+str(CBC))
             
             elif(opcion == 3):#Cifrado ECB
-                msj = stringToHexadecimal(input("Introduzca un mensaje: \n"))
-                key = stringToHexadecimal(input("Introduzca una clave: \n"))
+                msj = input("Introduzca un mensaje: \n")
+                key = input("Introduzca una clave: \n")
 
                 print('\nMensaje sin cifrar: '+str(msj))
                 print("Clave: "+str(key))
-                ECB = AES_cifrado.ECB_cifrado(msj, key)
+                ECB = AES_cifrado.ECB_cifrado(stringToHexadecimal(msj), stringToHexadecimal(key))
                 print('\nCifrado con ECB: '+str(ECB))
             
             elif(opcion == 4):#Descifrado ECB
